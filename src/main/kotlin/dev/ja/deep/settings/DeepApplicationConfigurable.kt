@@ -20,10 +20,16 @@ class DeepApplicationConfigurable : BoundSearchableConfigurable(i18n("settings.t
                 checkBox(i18n("settings.deeplFreeAccount.label")).bindSelected(settings::deeplFreeAcount)
             }
 
-            row(i18n("settings.deeplDefaultLanguage.label")) {
+            row(i18n("settings.deeplDefaultSourceLanguage.label")) {
+                textField()
+                    .bindText(settings::defaultSourceLanguage)
+                    .columns(COLUMNS_MEDIUM)
+            }
+
+            row(i18n("settings.deeplDefaultTargetLanguage.label")) {
                 textField()
                     .bindText(settings::defaultTargetLanguage)
-                    .columns(COLUMNS_LARGE)
+                    .columns(COLUMNS_MEDIUM)
             }
         }
     }

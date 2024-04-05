@@ -6,7 +6,10 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.editor.Document
+import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
+import com.intellij.util.text.nullize
 import dev.ja.deep.settings.DeepApplicationSettings
 import java.io.ByteArrayOutputStream
 
@@ -55,18 +58,41 @@ class DeeplService {
     /**
      * Translates the element as document and returns the result.
      */
-    fun translateTexts(textBlocks: List<String>, targetLanguage: String = DeepApplicationSettings.get().defaultTargetLanguage): List<String>? {
+    fun translateTexts(
+        textBlocks: List<TextBlock>,
+        sourceLanguage: String? = DeepApplicationSettings.get().defaultSourceLanguage.nullize(),
+        targetLanguage: String = DeepApplicationSettings.get().defaultTargetLanguage,
+    ): List<String>? {
         ApplicationManager.getApplication().assertIsNonDispatchThread()
 
         val translator = createTranslator()
-        val translationOptions = TextTranslationOptions()
+        val translationOptions = TextTranslationOptions().also {
+            it.tagHandling = "xml"
+            it.ignoreTags = listOf(TextBlock.TAG_NAME)
+        }
+
+        val textsWithIgnore = textBlocks.map(TextBlock::toApiInputString)
+        LOG.debug("Translating text: $textsWithIgnore")
 
         return try {
-            val results = translator.translateText(textBlocks, null, targetLanguage, translationOptions)
+            val results = textsWithIgnore
+                .chunked(50) // the API can only take 50 text items at once
+                .map { translator.translateText(it, sourceLanguage, targetLanguage, translationOptions) }
+                .flatten()
+
+            LOG.debug("Received translations. $textsWithIgnore -> $results")
             results.map { it.text }
         } catch (e: DeepLException) {
             null
         }
+    }
+
+    fun applyTranslatedTextBlock(document: Document, documentRange: TextRange, translationWithIgnore: String) {
+        document.replaceString(
+            documentRange.startOffset,
+            documentRange.endOffset,
+            translationWithIgnore.replace(TextBlock.START_TAG, "").replace(TextBlock.END_TAG, "")
+        )
     }
 
     private fun createTranslator(): Translator {

@@ -13,6 +13,11 @@ data class DeepApplicationSettings(
     @Volatile
     var deeplFreeAcount: Boolean = false,
 
+    @OptionTag("defaultSourceLanguage")
+    @JvmField
+    @Volatile
+    var defaultSourceLanguage: String = "",
+
     @OptionTag("defaultTargetLanguage")
     @JvmField
     @Volatile

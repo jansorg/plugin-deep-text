@@ -13,23 +13,23 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
-import com.intellij.psi.SmartPsiElementPointer
 import dev.ja.deep.i18n.DeepBundle.i18n
-import org.intellij.plugins.markdown.lang.psi.MarkdownPsiElement
 
 class TranslateMarkdownParagraphQuickfix(
     private val contextName: String,
     project: Project,
     file: PsiFile,
-    psiElements: List<MarkdownPsiElement>,
+    psiElements: List<PsiElementWithIgnored>,
     private val priority: Priority,
 ) : LocalQuickFix, PriorityAction {
-    private val translator = ParagraphsTranslator()
-    private val psiElementPointers: List<SmartPsiElementPointer<MarkdownPsiElement>>
+    private val translator = PsiElementTranslator()
+    private val psiElementPointers: List<PsiElementPointerWithIgnored>
 
     init {
         val manager = SmartPointerManager.getInstance(project)
-        psiElementPointers = psiElements.map { manager.createSmartPsiElementPointer(it, file) }
+        psiElementPointers = psiElements.map {
+            PsiElementPointerWithIgnored(manager.createSmartPsiElementPointer(it.psiElement), it.ignoredRanges)
+        }
     }
 
     override fun getPriority(): Priority {
@@ -55,22 +55,27 @@ class TranslateMarkdownParagraphQuickfix(
     override fun getRangesToHighlight(project: Project, descriptor: ProblemDescriptor): List<RangeToHighlight> {
         val file = descriptor.psiElement.containingFile
         return psiElementPointers
-            .mapNotNull { it.psiRange }
+            .mapNotNull { it.elementPointer.psiRange }
             .map { RangeToHighlight(file, TextRange(it.startOffset, it.endOffset), EditorColors.SEARCH_RESULT_ATTRIBUTES) }
             .takeIf { it.size == psiElementPointers.size }
             ?: emptyList()
     }
 
     override fun applyFix(project: Project, descriptor: ProblemDescriptor) {
-        val markdownElements = runReadAction {
-            psiElementPointers.mapNotNull { it.element }
+        val markdownElementsWithIgnored = runReadAction {
+            psiElementPointers.mapNotNull { withIgnored ->
+                withIgnored.elementPointer.element?.let {
+                    PsiElementWithIgnored(it, withIgnored.ignoredRanges)
+                }
+            }
         }
-        if (markdownElements.size != psiElementPointers.size) {
+
+        if (markdownElementsWithIgnored.size != psiElementPointers.size) {
             return
         }
 
         runInEdt(ModalityState.defaultModalityState()) {
-            translator.translate(project, markdownElements)
+            translator.translate(project, markdownElementsWithIgnored)
         }
     }
 }

@@ -14,10 +14,4 @@
                          groupKey="inspection.markdown.group"
                          key="inspection.markdown.translateParagraphs.text"/>
     </extensions>
-
-    <actions>
-        <action id="deep.translateMarkdownParagraph" class="dev.ja.deep.markdown.translateParagraphs.TranslateMarkdownParagraphAction">
-            <add-to-group group-id="EditorPopupMenu"/>
-        </action>
-    </actions>
 </idea-plugin>

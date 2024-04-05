@@ -1,12 +1,9 @@
 package dev.ja.deep.markdown.translateParagraphs
 
-import com.intellij.codeInsight.intention.PriorityAction
 import com.intellij.codeInsight.intention.PriorityAction.Priority
 import com.intellij.codeInspection.LocalInspectionTool
-import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.psi.PsiElementVisitor
-import com.intellij.psi.util.PsiTreeUtil
 import org.intellij.plugins.markdown.lang.psi.MarkdownElementVisitor
 import org.intellij.plugins.markdown.lang.psi.MarkdownPsiElement
 import org.intellij.plugins.markdown.lang.psi.impl.*
@@ -41,38 +38,39 @@ class TranslateMarkdownParagraphInspection : LocalInspectionTool() {
     }
 
     private fun registerForSingleElement(holder: ProblemsHolder, elementType: String, element: MarkdownPsiElement) {
-        holder.problem(element, "")
-            .highlight(ProblemHighlightType.INFORMATION)
-            .fix(TranslateMarkdownParagraphQuickfix(elementType, holder.project, holder.file, listOf(element), Priority.TOP))
-            .register()
+        val ignoredSubRanges = MarkdownElementRanges.findIgnoredRangesInElement(element)
+        val quickfix = TranslateMarkdownParagraphQuickfix(
+            elementType,
+            holder.project,
+            holder.file,
+            listOf(PsiElementWithIgnored(element, ignoredSubRanges)),
+            Priority.TOP
+        )
+
+        holder.problem(element, "").fix(quickfix).register()
     }
 
     private fun registerForElementHierarchy(
         holder: ProblemsHolder,
         elementType: String,
-        elements: MarkdownPsiElement,
+        contextElement: MarkdownPsiElement,
         priority: Priority,
     ) {
-        val subElements = findTranslatableHierarchyElements(elements)
+        val subElements = MarkdownElementRanges.findTranslatableChildren(contextElement)
         if (subElements.isNotEmpty()) {
-            holder.problem(elements, "")
-                .highlight(ProblemHighlightType.INFORMATION)
-                .fix(TranslateMarkdownParagraphQuickfix(elementType, holder.project, holder.file, subElements.toList(), priority))
-                .register()
+            val ignoredSubRanges = subElements.map {
+                PsiElementWithIgnored(it, MarkdownElementRanges.findIgnoredRangesInElement(it))
+            }
+
+            val quickfix = TranslateMarkdownParagraphQuickfix(
+                elementType,
+                holder.project,
+                holder.file,
+                ignoredSubRanges,
+                priority
+            )
+
+            holder.problem(contextElement, "").fix(quickfix).register()
         }
     }
-
-    private fun findTranslatableHierarchyElements(elements: MarkdownPsiElement): Collection<MarkdownPsiElement> {
-        return PsiTreeUtil.findChildrenOfAnyType(elements, *translatableElementTypes)
-            .filter {
-                it.textLength > 0
-            }
-    }
-
-    private val translatableElementTypes: Array<Class<out MarkdownPsiElement>> = arrayOf(
-        MarkdownParagraph::class.java,
-        MarkdownHeaderContent::class.java,
-        MarkdownBlockQuote::class.java,
-        MarkdownTableCell::class.java,
-    )
 }
