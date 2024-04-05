@@ -1,0 +1,23 @@
+<idea-plugin>
+    <resource-bundle>messages.plugin-deep</resource-bundle>
+
+    <extensions defaultExtensionNs="org.intellij.plugins.markdown">
+
+    </extensions>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <localInspection language="Markdown"
+                         enabledByDefault="true"
+                         shortName="DeepMarkdown"
+                         level="INFORMATION"
+                         implementationClass="dev.ja.deep.markdown.translateParagraphs.TranslateMarkdownParagraphInspection"
+                         groupKey="inspection.markdown.group"
+                         key="inspection.markdown.translateParagraphs.text"/>
+    </extensions>
+
+    <actions>
+        <action id="deep.translateMarkdownParagraph" class="dev.ja.deep.markdown.translateParagraphs.TranslateMarkdownParagraphAction">
+            <add-to-group group-id="EditorPopupMenu"/>
+        </action>
+    </actions>
+</idea-plugin>

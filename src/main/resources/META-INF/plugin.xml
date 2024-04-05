@@ -1,0 +1,21 @@
+<idea-plugin>
+    <id>dev.ja.deep</id>
+    <name>Deep</name>
+
+    <vendor email="mail@ja-dev.eu" url="https://www.j-a.dev">joachim_ansorg</vendor>
+
+    <resource-bundle>messages.plugin-deep</resource-bundle>
+
+    <description><![CDATA[
+    Integrates DeepL into the Markdown editor.
+  ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends config-file="deep-markdown.xml">org.intellij.plugins.markdown</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationConfigurable
+                key="settings.title"
+                provider="dev.ja.deep.settings.DeepApplicationSettingsConfigurableProvider"/>
+    </extensions>
+</idea-plugin>
