@@ -51,33 +51,33 @@ internal object MarkdownElementRanges {
         return ignoredRanges.map { it.shiftLeft(delta) }
     }
 
-/*
-    private fun splitCompositeElement(element: PsiElement): List<PsiElement> {
-        val first = element.firstChild ?: return emptyList()
-        val last = element.lastChild ?: return emptyList()
-        if (first == last) {
-            return listOf(element)
-        }
-
-        val result = mutableListOf<PsiElement>()
-        var hasRejected = false
-        var c = element.firstChild
-        while (c != null) {
-            if (c.isRejectedElement()) {
-                result += c.findValidNestedElements()
-                hasRejected = true
-            } else {
-                result += c
+    /*
+        private fun splitCompositeElement(element: PsiElement): List<PsiElement> {
+            val first = element.firstChild ?: return emptyList()
+            val last = element.lastChild ?: return emptyList()
+            if (first == last) {
+                return listOf(element)
             }
-            c = c.nextSibling
-        }
 
-        return when {
-            hasRejected -> result
-            else -> listOf(element)
+            val result = mutableListOf<PsiElement>()
+            var hasRejected = false
+            var c = element.firstChild
+            while (c != null) {
+                if (c.isRejectedElement()) {
+                    result += c.findValidNestedElements()
+                    hasRejected = true
+                } else {
+                    result += c
+                }
+                c = c.nextSibling
+            }
+
+            return when {
+                hasRejected -> result
+                else -> listOf(element)
+            }
         }
-    }
-*/
+    */
 
     private fun PsiElement.isRejectedElement(): Boolean {
         val elementType = this.node.elementType
@@ -87,24 +87,32 @@ internal object MarkdownElementRanges {
     @Suppress("UnstableApiUsage")
     private fun PsiElement.findValidNestedElements(): List<PsiElement> {
         val elementType = this.elementType
-        if (elementType == MarkdownElementTypes.INLINE_LINK) {
-            this as MarkdownInlineLink
-            val linkText = this.linkText
-            if (linkText != null) {
-                val textLeafs = linkText.childLeafs().filter { it.elementType == MarkdownTokenTypes.TEXT }.toList()
-                return when {
-                    textLeafs.isEmpty() -> listOf(linkText)
-                    else -> textLeafs
-                }
-            }
+        if (elementType in inlineFormattingElements) {
+            val textContainer = when {
+                elementType == MarkdownElementTypes.INLINE_LINK -> (this as MarkdownInlineLink).linkText
+                else -> this
+            } ?: return emptyList()
+
+            return textContainer.childLeafs().filter { it.elementType == MarkdownTokenTypes.TEXT }.toList()
         }
 
         return emptyList()
     }
 
-    private val rejectedElements = TokenSet.create(
-        MarkdownElementTypes.INLINE_LINK,
-        MarkdownElementTypes.CODE_SPAN
+    // inline elements, which contain TEXT leafs, which are part of the translated content
+    private val inlineFormattingElements = TokenSet.create(
+        MarkdownElementTypes.EMPH,
+        MarkdownElementTypes.STRONG,
+        MarkdownElementTypes.STRIKETHROUGH,
+        MarkdownElementTypes.INLINE_LINK
+    )
+
+    private val rejectedElements = TokenSet.orSet(
+        inlineFormattingElements,
+        TokenSet.create(
+            MarkdownElementTypes.INLINE_LINK,
+            MarkdownElementTypes.CODE_SPAN,
+        )
     )
 
     private val translatableElementTypes = TokenSet.orSet(

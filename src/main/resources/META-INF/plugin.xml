@@ -15,6 +15,7 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <applicationConfigurable
+                parentId="Tools"
                 key="settings.title"
                 provider="dev.ja.deep.settings.DeepApplicationSettingsConfigurableProvider"/>
     </extensions>

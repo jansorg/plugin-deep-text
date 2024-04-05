@@ -1,5 +1,6 @@
 package dev.ja.deep.settings
 
+import com.deepl.api.Formality
 import com.intellij.util.xmlb.annotations.OptionTag
 
 data class DeepApplicationSettings(
@@ -22,6 +23,11 @@ data class DeepApplicationSettings(
     @JvmField
     @Volatile
     var defaultTargetLanguage: String = "",
+
+    @OptionTag("defaultTargetFormality")
+    @JvmField
+    @Volatile
+    var defaultTargetFormality: Formality = Formality.Default,
 ) {
     companion object {
         @JvmStatic

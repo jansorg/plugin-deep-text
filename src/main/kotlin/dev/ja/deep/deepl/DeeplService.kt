@@ -62,11 +62,14 @@ class DeeplService {
         textBlocks: List<TextBlock>,
         sourceLanguage: String? = DeepApplicationSettings.get().defaultSourceLanguage.nullize(),
         targetLanguage: String = DeepApplicationSettings.get().defaultTargetLanguage,
+        targetLanguageFormality: Formality = DeepApplicationSettings.get().defaultTargetFormality,
     ): List<String>? {
         ApplicationManager.getApplication().assertIsNonDispatchThread()
 
         val translator = createTranslator()
         val translationOptions = TextTranslationOptions().also {
+            it.formality = targetLanguageFormality
+            it.isOutlineDetection = false
             it.tagHandling = "xml"
             it.ignoreTags = listOf(TextBlock.TAG_NAME)
         }
@@ -83,6 +86,7 @@ class DeeplService {
             LOG.debug("Received translations. $textsWithIgnore -> $results")
             results.map { it.text }
         } catch (e: DeepLException) {
+            LOG.debug("Error translating with DeepL", e)
             null
         }
     }
