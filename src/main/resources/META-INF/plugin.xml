@@ -1,13 +1,32 @@
 <idea-plugin>
-    <id>dev.ja.deep</id>
-    <name>Deep</name>
+    <id>dev.ja.deeptext</id>
+    <name>Deep Text</name>
 
     <vendor email="mail@ja-dev.eu" url="https://www.j-a.dev">joachim_ansorg</vendor>
 
     <resource-bundle>messages.plugin-deep</resource-bundle>
 
     <description><![CDATA[
-    Integrates DeepL into the Markdown editor.
+    <p>Integrates DeepL translations into the Markdown editor.</p>
+
+    <p>This plugin adds quick fixes on Markdown elements to quickly translate them using the DeepL API.
+    </p>
+
+    <p>
+    To use this plugin, you need an API key for <a href="https://www.deepl.com/en/pro#developer">DeepL API Free or DeepL API Pro</a>.
+    </p>
+
+    <ol>
+    <li>Retrieve your API key at <a href="https://www.deepl.com/en/your-account/keys">https://www.deepl.com/en/your-account/keys</a></li>
+    <li>Open <code>Settings > Tools > Deep Text</code> and enter your API key</li>
+    <li>Set up the source and target languages</li>
+    </ol>
+
+    <p>
+    To translate Markdown content, simply invoke the available quick fixes, e.g. by pressing <code>ALT + Enter</code>.
+    </p>
+
+    <p>In general, the more content you translate at once the better the result is going to be.</p>
   ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
@@ -15,8 +34,9 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <applicationConfigurable
-                parentId="Tools"
+                parentId="tools"
                 key="settings.title"
+                id="dev.ja.deeptext.applicationConfigurable"
                 provider="dev.ja.deep.settings.DeepApplicationSettingsConfigurableProvider"/>
     </extensions>
 </idea-plugin>

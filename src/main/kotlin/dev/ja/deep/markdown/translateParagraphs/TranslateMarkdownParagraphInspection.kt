@@ -39,10 +39,9 @@ class TranslateMarkdownParagraphInspection : LocalInspectionTool() {
 
     private fun registerForSingleElement(holder: ProblemsHolder, elementType: String, element: MarkdownPsiElement) {
         val ignoredSubRanges = MarkdownElementRanges.findIgnoredRangesInElement(element)
-        val quickfix = TranslateMarkdownParagraphQuickfix(
+        val quickfix = TranslateMarkdownElementsQuickfix(
             elementType,
             holder.project,
-            holder.file,
             listOf(PsiElementWithIgnored(element, ignoredSubRanges)),
             Priority.TOP
         )
@@ -62,10 +61,9 @@ class TranslateMarkdownParagraphInspection : LocalInspectionTool() {
                 PsiElementWithIgnored(it, MarkdownElementRanges.findIgnoredRangesInElement(it))
             }
 
-            val quickfix = TranslateMarkdownParagraphQuickfix(
+            val quickfix = TranslateMarkdownElementsQuickfix(
                 elementType,
                 holder.project,
-                holder.file,
                 ignoredSubRanges,
                 priority
             )

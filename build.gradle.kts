@@ -1,18 +1,18 @@
 plugins {
     id("java")
-    id("org.jetbrains.kotlin.jvm") version "1.9.22"
+    id("org.jetbrains.kotlin.jvm") version "1.9.23"
     id("org.jetbrains.intellij") version "1.17.3"
 }
 
-group = "dev.ja.ide-deepl"
-version = "1.0-SNAPSHOT"
+group = "dev.ja.deepText"
+version = "1.0.0"
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation("com.deepl.api:deepl-java:1.4.0")
+    implementation("com.deepl.api:deepl-java:1.5.0")
 }
 
 intellij {

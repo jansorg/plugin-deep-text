@@ -5,4 +5,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "plugin-deep"
+rootProject.name = "deep-text"

@@ -10,15 +10,15 @@ import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.editor.colors.EditorColors
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.TextRange
-import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import dev.ja.deep.i18n.DeepBundle.i18n
+import dev.ja.deep.settings.DeepApplicationSettings
 
-class TranslateMarkdownParagraphQuickfix(
+class TranslateMarkdownElementsQuickfix(
     private val contextName: String,
     project: Project,
-    file: PsiFile,
     psiElements: List<PsiElementWithIgnored>,
     private val priority: Priority,
 ) : LocalQuickFix, PriorityAction {
@@ -62,6 +62,15 @@ class TranslateMarkdownParagraphQuickfix(
     }
 
     override fun applyFix(project: Project, descriptor: ProblemDescriptor) {
+        if (DeepApplicationSettings.get().deeplApiKey.isEmpty()) {
+            Messages.showErrorDialog(project, i18n("error.apiKeyMissing.message"), i18n("error.apiKeyMissing.title"))
+            return
+        }
+        if (DeepApplicationSettings.get().defaultTargetLanguage.isEmpty()) {
+            Messages.showErrorDialog(project, i18n("error.targetLanguageMissing.message"), i18n("error.targetLanguageMissing.title"))
+            return
+        }
+
         val markdownElementsWithIgnored = runReadAction {
             psiElementPointers.mapNotNull { withIgnored ->
                 withIgnored.elementPointer.element?.let {
